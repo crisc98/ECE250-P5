@@ -127,12 +127,13 @@ double Weighted_graph::adjacent(int m, int n) const {
 }
 
 double Weighted_graph::distance(int m, int n) {
-	if(m >= numVerts || n >= numVerts || n < 0 || m < 0 || degree(m) == 0 || degree(n) == 0){
-		throw illegal_argument();
-	}
 	if(m==n){
 		return 0.0;
 	}
+	if(m >= numVerts || n >= numVerts || n < 0 || m < 0 || degree(m) == 0 || degree(n) == 0){
+		throw illegal_argument();
+	}
+
 
 	int done = 0;
 	for(int i = 0; i <numVerts; i++){
