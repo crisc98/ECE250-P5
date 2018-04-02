@@ -43,7 +43,7 @@ class Weighted_graph {
 		int numVerts;
 		int numEdges;
 
-		double **graph_mat;
+		double *graph_mat;
 		double *dist;
 		int *visited;
 		int *degreeArr;
@@ -58,6 +58,7 @@ class Weighted_graph {
 		int edge_count() const;
 		double adjacent( int, int ) const;
 		double distance( int, int );
+		int getIndex( int, int ) const;
 
 		void insert( int, int, double );
 
@@ -73,30 +74,24 @@ Weighted_graph::Weighted_graph(int n){
 	if(n<=0){
 		n=1;
 	}
-	graph_mat = new double * [n];
+	graph_mat = new double[n*n];
 	dist = new double[n];
 	visited = new int[n];
 	degreeArr = new int[n];
 	numVerts = n;
 	numEdges = 0;
 	for(int i=0;i<n;i++){
-		graph_mat[i]= new double[n];
 		dist[i] = INF;
 		visited[i] = 0;
 		degreeArr[i] = 0;
 	}
-	for(int i=0;i<n;i++){
-		for(int j=0; j<n;j++){
-			graph_mat[i][j] = INF;
-		}
+	for(int i=0;i<n*n;i++){
+		graph_mat[i] = INF;
 	}
 
 }
 
 Weighted_graph::~Weighted_graph(){
-	for(int i = 0; i < numVerts; i++){
-		delete[] graph_mat[i];
-	}
 	delete[] graph_mat;
 	delete[] dist;
 	delete[] visited;
@@ -114,14 +109,18 @@ int Weighted_graph::edge_count() const {
 	return numEdges;
 }
 
+int Weighted_graph::getIndex( int n, int m) const{
+	return n*numVerts+m;
+}
+
 double Weighted_graph::adjacent(int m, int n) const {
 	if(m >= numVerts || n>= numVerts|| n<0 ||m <0){
 		throw illegal_argument();
 	}
-	if(graph_mat[m][n] == INF && graph_mat[n][m] == INF){
+	if(graph_mat[getIndex(m,n)] == INF && graph_mat[getIndex(n,m)] == INF){
 		return 0.0;
 	}else {
-		return graph_mat[m][n];
+		return graph_mat[getIndex(m, n)];
 	}
 
 }
@@ -130,7 +129,8 @@ double Weighted_graph::distance(int m, int n) {
 	if(m==n){
 		return 0.0;
 	}
-	if(m >= numVerts || n >= numVerts || n < 0 || m < 0 || degree(m) == 0 || degree(n) == 0){
+	if(m >= numVerts || n >= numVerts || n < 0 || m < 0){
+		std::cout << "m: " << m << " numVerts: " << numVerts << " n: " << n << " degree(m): " << degree(m) << " degree(n): " << degree(n) << std::endl;
 		throw illegal_argument();
 	}
 
@@ -147,8 +147,9 @@ double Weighted_graph::distance(int m, int n) {
 
 	 while(done == 0){
 		 for(int i = 0; i < numVerts; i++){
-			 if(graph_mat[minDistPos][i] != 0 && graph_mat[minDistPos][i] != INF && graph_mat[minDistPos][i] + dist[minDistPos]< dist[i]){
-				 dist[i] = graph_mat[i][minDistPos] + dist[minDistPos];
+			 double temp = graph_mat[getIndex(minDistPos, i)];
+			 if(temp != 0 && temp != INF && temp + dist[minDistPos]< dist[i]){
+				 dist[i] = graph_mat[getIndex(i, minDistPos)] + dist[minDistPos];
 			 }
 			 visited[minDistPos] = 1;
 		 }
@@ -168,16 +169,16 @@ double Weighted_graph::distance(int m, int n) {
 }
 
 void Weighted_graph::insert(int m, int n, double w){
-	if(w <0 ||n == m || m>=numVerts || n >= numVerts){
+	if(w <0 ||n == m || m>=numVerts || n >= numVerts ||n < 0 || m <0){
 		throw illegal_argument();
 	}
-	if(graph_mat[m][n] == INF){
+	if(graph_mat[getIndex(m,n)] == INF){
 		numEdges++;
 		degreeArr[m] += 1;
 		degreeArr[n] += 1;
 	}
-	graph_mat[m][n] = w;
-	graph_mat[n][m] = w;
+	graph_mat[getIndex(m,n)] = w;
+	graph_mat[getIndex(n,m)] = w;
 }
 // You can modify this function however you want:  it will not be tested
 
