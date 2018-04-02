@@ -59,6 +59,7 @@ class Weighted_graph {
 		double adjacent( int, int ) const;
 		double distance( int, int );
 		int getIndex( int, int ) const;
+		int minDistance(double*, bool*) const;
 
 		void insert( int, int, double );
 
@@ -75,14 +76,10 @@ Weighted_graph::Weighted_graph(int n){
 		n=1;
 	}
 	graph_mat = new double[n*n];
-	dist = new double[n];
-	visited = new int[n];
 	degreeArr = new int[n];
 	numVerts = n;
 	numEdges = 0;
 	for(int i=0;i<n;i++){
-		dist[i] = INF;
-		visited[i] = 0;
 		degreeArr[i] = 0;
 	}
 	for(int i=0;i<n*n;i++){
@@ -93,8 +90,6 @@ Weighted_graph::Weighted_graph(int n){
 
 Weighted_graph::~Weighted_graph(){
 	delete[] graph_mat;
-	delete[] dist;
-	delete[] visited;
 	delete[] degreeArr;
 }
 
@@ -124,6 +119,18 @@ double Weighted_graph::adjacent(int m, int n) const {
 	}
 
 }
+int Weighted_graph::minDistance(double dist[], bool visited[]) const
+{
+   // Initialize min value
+   double min = INF;
+	 int min_index;
+
+   for (int v = 0; v < numVerts; v++)
+     if (visited[v] == 0 && dist[v] <= min)
+         min = dist[v], min_index = v;
+
+   return min_index;
+}
 
 double Weighted_graph::distance(int m, int n) {
 	if(m==n){
@@ -133,42 +140,73 @@ double Weighted_graph::distance(int m, int n) {
 		std::cout << "m: " << m << " numVerts: " << numVerts << " n: " << n << " degree(m): " << degree(m) << " degree(n): " << degree(n) << std::endl;
 		throw illegal_argument();
 	}
+	double dist[numVerts];
+	bool visited[numVerts];
 
+	for (int i = 0; i < numVerts; i++)
+        dist[i] = INF, visited[i] = false;
 
-	int done = 0;
-	for(int i = 0; i <numVerts; i++){
-		dist[i] = INF;
-		visited[i]=0;
-	}
-
-	visited[m] = 1;
 	dist[m] = 0.0;
-	int minDistPos = m;
 
-	 while(done == 0){
-		 for(int i = 0; i < numVerts; i++){
-			 double temp = graph_mat[getIndex(minDistPos, i)];
-			 //If the distance between the current index of min distance and the node being examined (i) != 0 or inf
-			 //Take the better distance and update dist[i]
-			 if(temp != 0 && temp != INF && temp + dist[minDistPos]< dist[i]){
-				 dist[i] = temp + dist[minDistPos];
-				 if(minDistPos == n)
-				 	return dist[n];
-			 }
-			 visited[minDistPos] = 1;
-		 }
-		 double minDist = INF;
-		 for(int i = 0; i< numVerts; i++){
-			 if(dist[i] <= minDist && visited[i] == 0){
-				 minDist = dist[i];
-				 minDistPos = i;
-			 }
-		 }
-		 done = 1;
-		 for(int i = 0; i< numVerts; i++){
-			 done = done*visited[i];
-		 }
-	 }
+	for (int count = 0; count < numVerts; count++)
+     {
+       // Pick the minimum distance vertex from the set of vertices not
+       // yet processed. u is always equal to src in first iteration.
+       int u = minDistance(dist, visited);
+			 if(u == n)
+			 	return dist[u];
+
+       // Mark the picked vertex as processed
+       visited[u] = true;
+
+       // Update dist value of the adjacent vertices of the picked vertex.
+       for (int v = 0; v < numVerts; v++){
+
+         // Update dist[v] only if is not in sptSet, there is an edge from
+         // u to v, and total weight of path from src to  v through u is
+         // smaller than current value of dist[v]
+         if (!visited[v] && graph_mat[getIndex(u,v)] && dist[u] != INF && dist[u]+graph_mat[getIndex(u,v)] < dist[v])
+            dist[v] = dist[u] + graph_mat[getIndex(u,v)];
+
+				}
+     }
+
+	//
+	// int done = 0;
+	// for(int i = 0; i <numVerts; i++){
+	// 	dist[i] = INF;
+	// 	visited[i]=0;
+	// }
+	//
+	// visited[m] = 1;
+	// dist[m] = 0.0;
+	// int minDistPos = m;
+	//
+	//  while(done == 0){
+	// 	 for(int i = 0; i < numVerts; i++){
+	// 		 double minDist = INF;
+	// 		 for(int j = 0; j< numVerts; i++){
+	// 			 if(dist[j] < minDist && visited[j] == 0){
+	// 				 minDist = dist[j];
+	// 				 minDistPos = j;
+	// 			 }
+	// 		 }
+	// 		 double temp = graph_mat[getIndex(minDistPos, i)];
+	// 		 //If the distance between the current index of min distance and the node being examined (i) != 0 or inf
+	// 		 //Take the better distance and update dist[i]
+	// 		 if(temp != 0 && temp != INF && temp + dist[minDistPos]< dist[i]){
+	// 			 dist[i] = temp + dist[minDistPos];
+	// 			 if(minDistPos == n)
+	// 			 	return dist[n];
+	// 		 }
+	// 		 visited[minDistPos] = 1;
+	// 	 }
+	//
+	// 	 done = 1;
+	// 	 for(int i = 0; i< numVerts; i++){
+	// 		 done = done*visited[i];
+	// 	 }
+	//  }
 	 return dist[n];
 }
 
