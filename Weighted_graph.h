@@ -143,13 +143,17 @@ double Weighted_graph::distance(int m, int n) {
 
 	visited[m] = 1;
 	dist[m] = 0.0;
-	 int minDistPos = m;
+	int minDistPos = m;
 
 	 while(done == 0){
 		 for(int i = 0; i < numVerts; i++){
 			 double temp = graph_mat[getIndex(minDistPos, i)];
+			 //If the distance between the current index of min distance and the node being examined (i) != 0 or inf
+			 //Take the better distance and update dist[i]
 			 if(temp != 0 && temp != INF && temp + dist[minDistPos]< dist[i]){
-				 dist[i] = graph_mat[getIndex(i, minDistPos)] + dist[minDistPos];
+				 dist[i] = temp + dist[minDistPos];
+				 if(minDistPos == n)
+				 	return dist[n];
 			 }
 			 visited[minDistPos] = 1;
 		 }
