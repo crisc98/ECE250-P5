@@ -38,14 +38,10 @@
 
 class Weighted_graph {
 	private:
-		// your implementation here
-		//  you can add both private member variables and private member functions
 		int numVerts;
 		int numEdges;
 
 		double *graph_mat;
-		double *dist;
-		int *visited;
 		int *degreeArr;
 
 		static const double INF;
@@ -121,104 +117,85 @@ double Weighted_graph::adjacent(int m, int n) const {
 }
 int Weighted_graph::minDistance(double dist[], bool visited[]) const
 {
-   // Initialize min value
+   //Initialize min value and min index
    double min = INF;
-	 int min_index;
+	 int min_pos;
 
+	 //Loop through all vertices to find the one with the min distance
+	 //Update the min if a smaller vert distance is found
    for (int v = 0; v < numVerts; v++)
      if (visited[v] == 0 && dist[v] <= min)
-         min = dist[v], min_index = v;
+         min = dist[v], min_pos = v;
 
-   return min_index;
+   return min_pos;
 }
 
 double Weighted_graph::distance(int m, int n) {
+	//If the distance requested is between a node and itself, return 0
 	if(m==n){
 		return 0.0;
 	}
+
+	//If the nodes being acted on do not correspond to realistic nodes on the graph, throw an illegal_argument Exception
 	if(m >= numVerts || n >= numVerts || n < 0 || m < 0){
-		std::cout << "m: " << m << " numVerts: " << numVerts << " n: " << n << " degree(m): " << degree(m) << " degree(n): " << degree(n) << std::endl;
 		throw illegal_argument();
 	}
+
+	//Initialize the distance and visited arrays.
+	//Dist stores the distances from the source node to the node index of the arrays
+	//visited stores whether or not the node at the index has been visited in the algo yet
 	double dist[numVerts];
 	bool visited[numVerts];
 
+	//Initialize all indexes of dist and visited to infinity and false respectively
 	for (int i = 0; i < numVerts; i++)
         dist[i] = INF, visited[i] = false;
 
+	//Define the distance from to current node to itself as 0
 	dist[m] = 0.0;
 
-	for (int count = 0; count < numVerts; count++)
+	for (int i = 0; i < numVerts; i++)
      {
-       // Pick the minimum distance vertex from the set of vertices not
-       // yet processed. u is always equal to src in first iteration.
+       //Select the minimum vertex from the vertices that have not yet been visited
        int u = minDistance(dist, visited);
+
+			 //Indicate that the vertex u has been visited
+       visited[u] = true;
+
+			 //If the selected vertex is out target vertex, n, return its distance and the algo is finished
 			 if(u == n)
 			 	return dist[u];
 
-       // Mark the picked vertex as processed
-       visited[u] = true;
-
-       // Update dist value of the adjacent vertices of the picked vertex.
+       //Update distance values for the verticies adjacent to u
        for (int v = 0; v < numVerts; v++){
 
-         // Update dist[v] only if is not in sptSet, there is an edge from
-         // u to v, and total weight of path from src to  v through u is
-         // smaller than current value of dist[v]
+				 //Update vertex distance if the vertex is connected to u, has not yet been visited,
+				 // and has a path weight smaller than the current distance
+				 //TLDR; if there is a better distance, use it
          if (!visited[v] && graph_mat[getIndex(u,v)] && dist[u] != INF && dist[u]+graph_mat[getIndex(u,v)] < dist[v])
             dist[v] = dist[u] + graph_mat[getIndex(u,v)];
-
 				}
      }
-
-	//
-	// int done = 0;
-	// for(int i = 0; i <numVerts; i++){
-	// 	dist[i] = INF;
-	// 	visited[i]=0;
-	// }
-	//
-	// visited[m] = 1;
-	// dist[m] = 0.0;
-	// int minDistPos = m;
-	//
-	//  while(done == 0){
-	// 	 for(int i = 0; i < numVerts; i++){
-	// 		 double minDist = INF;
-	// 		 for(int j = 0; j< numVerts; i++){
-	// 			 if(dist[j] < minDist && visited[j] == 0){
-	// 				 minDist = dist[j];
-	// 				 minDistPos = j;
-	// 			 }
-	// 		 }
-	// 		 double temp = graph_mat[getIndex(minDistPos, i)];
-	// 		 //If the distance between the current index of min distance and the node being examined (i) != 0 or inf
-	// 		 //Take the better distance and update dist[i]
-	// 		 if(temp != 0 && temp != INF && temp + dist[minDistPos]< dist[i]){
-	// 			 dist[i] = temp + dist[minDistPos];
-	// 			 if(minDistPos == n)
-	// 			 	return dist[n];
-	// 		 }
-	// 		 visited[minDistPos] = 1;
-	// 	 }
-	//
-	// 	 done = 1;
-	// 	 for(int i = 0; i< numVerts; i++){
-	// 		 done = done*visited[i];
-	// 	 }
-	//  }
+		 //Return the distance from m to n
 	 return dist[n];
 }
 
 void Weighted_graph::insert(int m, int n, double w){
+
+	//Throw an illegal_argument Exception if erroneous input is given to the function
 	if(w <0 ||n == m || m>=numVerts || n >= numVerts ||n < 0 || m <0){
 		throw illegal_argument();
 	}
+
+	//If the the distance between the vertices is infinity,
+	//increment the number of edges and the degrees of each vertex
 	if(graph_mat[getIndex(m,n)] == INF){
 		numEdges++;
 		degreeArr[m] += 1;
 		degreeArr[n] += 1;
 	}
+
+	//Update the graph matrix the argument weight between n and m and vice-versa
 	graph_mat[getIndex(m,n)] = w;
 	graph_mat[getIndex(n,m)] = w;
 }
